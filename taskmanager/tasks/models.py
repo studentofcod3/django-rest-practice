@@ -1,3 +1,18 @@
 from django.db import models
+from django_extensions.db.models import TimeStampedModel
 
-# Create your models here.
+class Category(TimeStampedModel):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+    
+
+class Task(TimeStampedModel):
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    completed = models.BooleanField(default=False)
+    category = models.ForeignKey(Category, related_name='tasks', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title
