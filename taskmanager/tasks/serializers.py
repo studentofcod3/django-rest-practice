@@ -7,6 +7,22 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class TaskListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = ['id', 'title', 'status']
+
+
+class TaskUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = ['title', 'description', 'status', 'category']
+        extra_kwargs = {
+            'title': {'required': False},
+            'description': {'required': False},
+        }
+
+
 class TaskSerializer(serializers.ModelSerializer):
     is_completed = serializers.SerializerMethodField(
         help_text="A human readable value of whether or not the task has been completed"
