@@ -1,12 +1,16 @@
+import datetime
+
+from django.db.models import Count, F, Q, ExpressionWrapper, fields
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets, mixins
 from rest_framework.pagination import PageNumberPagination
-from tasks.models import Task, Category
-from tasks.serializers import TaskListSerializer, TaskSerializer, CategorySerializer, TaskUpdateSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
+
+from tasks.models import Task, Category
+from tasks.serializers import TaskListSerializer, TaskSerializer, CategorySerializer, TaskUpdateSerializer
 
 class TaskPagination():
     page_size = 10
@@ -34,7 +38,16 @@ class TaskViewSet(
     search_fields = ['title', 'description', 'category__name']
 
     def get_queryset(self):
-        return Task.objects.filter(completed=False)
+        # USe Q objects to construct and/or statements
+        qs = Task.objects.filter(
+            ~Q(created_at__lte=datetime.today()) | Q(completed=False)
+        ).annotate(
+            time_since_creation=ExpressionWrapper(
+                F('creation_date') - datetime.now(),
+                output_field=fields.DurationField()
+            )
+        )
+        return qs
     
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
