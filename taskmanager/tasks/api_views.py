@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from django.db.models import Count, F, Q, ExpressionWrapper, fields
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,7 +12,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from tasks.models import Task, Category
 from tasks.serializers import TaskListSerializer, TaskSerializer, CategorySerializer, TaskUpdateSerializer
 
-class TaskPagination():
+class TaskPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
@@ -33,17 +33,17 @@ class TaskViewSet(
         filters.SearchFilter,
     ]
     filterset_fields = ['completed', 'category']
-    ordering_fields = ['created_at']
-    ordering = ['-created_at'] # Default ordering
+    ordering_fields = ['created']
+    ordering = ['-created'] # Default ordering
     search_fields = ['title', 'description', 'category__name']
 
     def get_queryset(self):
         # USe Q objects to construct and/or statements
         qs = Task.objects.filter(
-            ~Q(created_at__lte=datetime.today()) | Q(completed=False)
+            ~Q(created__lte=datetime.today()) | Q(completed=False)
         ).annotate(
             time_since_creation=ExpressionWrapper(
-                F('creation_date') - datetime.now(),
+                F('created') - datetime.now(),
                 output_field=fields.DurationField()
             )
         )

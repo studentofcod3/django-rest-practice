@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     # Other apps
     'django_extensions',
     'rest_framework',
+    'django_filters',
     'drf_yasg',
 ]
 
@@ -56,11 +57,14 @@ MIDDLEWARE = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
 }
 
 ROOT_URLCONF = 'taskmanager.urls'
