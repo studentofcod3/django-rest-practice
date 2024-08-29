@@ -6,7 +6,7 @@ from rest_framework import filters, viewsets, mixins
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from tasks.models import Task, Category
@@ -25,7 +25,7 @@ class TaskViewSet(
     mixins.DestroyModelMixin,
 ):
     permission_classes = [IsAuthenticated]
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [SessionAuthentication]
     pagination_class = TaskPagination
     filter_backends = [
         DjangoFilterBackend, 
@@ -77,4 +77,4 @@ class CategoryViewset(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticated]
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [SessionAuthentication]

@@ -4,23 +4,29 @@ from tasks.models import Task, Category
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ['name']
 
 
 class TaskListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ['id', 'title', 'status']
+        fields = ['id', 'title']
 
 
 class TaskUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ['title', 'description', 'status', 'category']
+        fields = ['title', 'description', 'category', 'completed']
         extra_kwargs = {
             'title': {'required': False},
             'description': {'required': False},
         }
+
+    def validate(self, data):
+        # Can validate across entire object
+        if data["completed"] == True and not data["description"]:
+            raise serializers.ValidationError["Completed tasks must have a description"]
+        return data
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -32,9 +38,9 @@ class TaskSerializer(serializers.ModelSerializer):
     # needs to see both the task and its category in one request.
     # NOTE: This is only for read operations. For write operations we need to modify the create method
     category = CategorySerializer()
-    category_name = serializers.CharField(source='category.name')
-    # Customize created_at field using serializer DateTimeField to adjust format for easier reading.
-    created_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    # Customize due_date field using serializer DateTimeField to adjust format for easier reading.
+    due_date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
     task_title = serializers.CharField(
         source='title',
         max_length=200,
@@ -46,7 +52,7 @@ class TaskSerializer(serializers.ModelSerializer):
         model = Task
         fields = [
             'id', 
-            'created_at',
+            'due_date',
             'task_title', 
             'description',
             'category',
@@ -56,7 +62,7 @@ class TaskSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             'id',
-            'created_at'
+            'created',
             'category_name'
         ]
 
@@ -78,12 +84,6 @@ class TaskSerializer(serializers.ModelSerializer):
         category = Category.objects.create(**category_data)
         task = Task.objects.create(category=category, **validated_data)
         return task
-
-    def validate(self, data):
-        # Can validate across entire object
-        if data["is_completed"] == "Yes" and not data["description"]:
-            raise serializers.ValidationError["Completed tasks must have a description"]
-        return data
     
     def validate_description(self, value):
         if 'badword' in value:
